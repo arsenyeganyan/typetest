@@ -1,0 +1,27 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: var(--body-color);
+        font-family: "Open Sans", sans-serif;
+        font-optical-sizing: auto;
+        font-weight: 400;
+        font-style: normal;
+        font-variation-settings:"wdth" 100;
+}
+
+#link {
+    text-decoration: none;
+    color: var(--def-dark);
+}
+
+:root {
+    --body-color: rgb(164, 185, 193);
+    --def-light: rgb(139, 156, 163);
+    --def-dark: rgb(60, 62, 63);
+    --right: #3cac96;
+    --wrong: #bd6b59 ;
+}
