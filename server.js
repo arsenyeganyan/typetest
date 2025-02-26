@@ -10,6 +10,7 @@ const cookieParser = require('cookie-parser');
 
 //route imports
 const authRouter = require('./routes/authRoutes');
+const statsRouter = require('./routes/statsRoutes');
 
 const csrfProtection = csrf({ cookie: {
     maxAge: 24 * 60 * 60,
@@ -41,7 +42,8 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        maxAge: 24 * 60 * 60 * 1000
+        maxAge: 24 * 60 * 60 * 1000,
+        secure: false, 
     },
     store: store,
 }));
@@ -82,6 +84,7 @@ app.get('/check-auth', (req, res) => {
 })
 
 app.use('/auth', authRouter);
+app.use('/stats', statsRouter);
 
 app.listen(4000, () => {
     console.log('Server listening on port 4000...');

@@ -5,6 +5,7 @@ import Header from "./components/Header";
 import Login from "./features/auth/Login";
 import Signup from "./features/auth/Signup";
 import Home from "./components/Home";
+import Personal from "./features/stats/Personal";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
       <Route element={<RequireAuth />}>
         <Route element={<Header />}>
           <Route index element={<Home />} />
+          <Route path="dashboard/:userId" element={<Personal />}/>
         </Route>
       </Route>
     </Routes>

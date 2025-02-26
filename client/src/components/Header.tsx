@@ -1,21 +1,22 @@
 import '../css/home.css';
 import { useState } from 'react';
 import { Link, useNavigate, Outlet } from 'react-router-dom';
-import { useLogoutMutation } from '../features/auth/authApiSlice';
-import Cookies from 'js-cookie';
+import { useLogoutMutation, useGetSessionQuery } from '../features/auth/authApiSlice';
 
 const Header = () => {
     const navigate = useNavigate();
 
     const [errMsg, setErrMsg] = useState('');
-    const [logout, { isLoading }] = useLogoutMutation();
+    const [logout] = useLogoutMutation();
+
+    const { data: response } = useGetSessionQuery();
 
     const handleLogout = async (e: any) => {
         e.preventDefault();
 
         try {
             const userData = await logout({}).unwrap();
-            Cookies.remove('userId');
+            console.log(userData);
 
             navigate('/login');
         } catch(err: any) {
@@ -30,11 +31,11 @@ const Header = () => {
         <header>
             <p>ArsenType</p>
             <ul>
-                <li>
-                    <Link id='link' to='/dashboard'>Personal</Link>
+            <li>
+                    <Link id='link' to='/'>Home</Link>
                 </li>
                 <li>
-                    <Link id='link' to='/global'>Leaderboard</Link>
+                    <Link id='link' to={`/dashboard/${response?.userId}`}>Personal</Link>
                 </li>
                 <li onClick={handleLogout}>Logout</li>
             </ul>

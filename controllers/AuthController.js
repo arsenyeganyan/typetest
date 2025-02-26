@@ -25,7 +25,7 @@ exports.validate = async (req, res, next) => {
         });
     } catch(err) {
         console.log(err);
-        res.status(500).json({ error: 'Error validating user!' });
+        res.status(500).json({ error: 'Error validating user!', details: err.message });
     }
 }
 
@@ -41,17 +41,17 @@ exports.signup = async (req, res, next) => {
         req.session.userId = newUser._id;
         console.log('session test: ', req.session.userId);
 
-        res.status(200).json({ msg: 'User created!'});
+        res.status(200).json({ msg: 'User created!' });
     } catch(err) {
         console.log(err);
-        res.status(500).json({ error: 'Error creating user!' });
+        res.status(500).json({ error: 'Error creating user!', details: err.message });
     }
 }
 
 exports.login = async (req, res, next) => {
     try {
         const { username, password } = req.body;
-            
+        
         let user = await User.findOne({ username });
         if(!user) 
             return res.status(401).json({ error: 'Invalid credentials!' });
@@ -65,18 +65,28 @@ exports.login = async (req, res, next) => {
         req.session.userId = userId;
         console.log('session test: ', req.session.userId);
 
-        res.status(200).json({ msg: 'Logged in successfully!' });
+        res.status(200).json({ msg: 'Logged in successfully!'  });
     } catch(err) {
         console.error(err);
         res.status(500).json({ error: 'Error while logging in!' });
     }
 }
 
+exports.getSession = (req, res) => {
+    if (req.session.userId) {
+        console.log('session id backend: ', req.session.userId);
+        
+        res.status(200).json({ userId: req.session.userId });
+    } else {
+        res.status(401).json({ error: 'Not authenticated' });
+    }
+};
+
 exports.logout = (req, res) => {
     req.session.destroy((err) => {
         if(err) {
             console.error(err);
-            return res.status(500).json({ error: 'Error while logging out!' });
+            return res.status(500).json({ error: 'Error while logging out!', details: err.message });
         }
 
         res.status(204).send();

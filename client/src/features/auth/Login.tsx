@@ -1,7 +1,7 @@
 import '../../css/auth.css';
 import { useRef, useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
 import { useLoginMutation } from "./authApiSlice";
+import { useNavigate, Link } from "react-router-dom";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -27,6 +27,7 @@ const Login = () => {
     
     try {
       const userData = await login({ username, password }).unwrap();
+      
       setErrMsg(userData?.msg);
       
       navigate('/');

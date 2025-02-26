@@ -1,7 +1,6 @@
 import { apiSlice } from '../../app/api/apiSlice';
 
 interface AuthResponse {
-    auth: boolean;
     userId?: string;
 }
 
@@ -9,6 +8,9 @@ export const authApiSlice = apiSlice.injectEndpoints({
     endpoints: builder => ({
         checkAuth: builder.query<AuthResponse, void>({
             query: () => 'check-auth',
+        }),
+        getSession: builder.query<AuthResponse, void>({
+            query: () => 'auth/session',
         }),
         login: builder.mutation({
             query: credentials => ({
@@ -47,4 +49,5 @@ export const {
     useSignupMutation,
     useLogoutMutation,
     useValidateMutation,
+    useGetSessionQuery,
 } = authApiSlice;

@@ -41,6 +41,7 @@ const Signup = () => {
         const userData = await signup({ username, password, email }).unwrap();
         
         setErrMsg(userData?.msg);
+
         navigate('/');
       } else {
         const isValid = await userSchema.isValid({

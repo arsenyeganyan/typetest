@@ -6,11 +6,11 @@
 
 body {
     background: var(--body-color);
-        font-family: "Open Sans", sans-serif;
-        font-optical-sizing: auto;
-        font-weight: 400;
-        font-style: normal;
-        font-variation-settings:"wdth" 100;
+    font-family: "Open Sans", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+    font-variation-settings:"wdth" 100;
 }
 
 #link {
@@ -22,6 +22,7 @@ body {
     --body-color: rgb(164, 185, 193);
     --def-light: rgb(139, 156, 163);
     --def-dark: rgb(60, 62, 63);
+    --def-dark-hover: rgb(35, 36, 37);
     --right: #3cac96;
     --wrong: #bd6b59 ;
 }

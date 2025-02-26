@@ -11,7 +11,7 @@ const useKeyPress = (callback: any) => {
                 callback && callback(key);
             }
 
-            if(e.keyCode == 32 && e.target == document.body) {
+            if(e.keyCode == 32  &&  e.target == document.body) {
                 e.preventDefault();
             }
         }

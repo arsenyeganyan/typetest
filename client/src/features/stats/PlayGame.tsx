@@ -1,16 +1,13 @@
 import '../../css/home.css';
-import React, { useEffect, useState, useMemo } from 'react';
+import  { useEffect, useState, useMemo } from 'react';
 import useKeyPress from '../../utils/useKeyPress';
 import Box from '@material-ui/core/Box';
 import Character from './Character';
+import { useAddTestMutation } from './statsApiSlice';
+import { useGetSessionQuery } from '../auth/authApiSlice';
+import { generateRandomParagraph } from '../../utils/genRandomText';;
 
-interface PlayGameProps {
-  text?: string;
-}
-
-const PlayGame: React.FC<PlayGameProps> = ({ text }) => {
-  const textByLine = useMemo(() => (text ?? '').split('\n'), [text]);
-
+const PlayGame = () => {
   const [chrsTyped, setChrsTyped] = useState<Array<string>>([]);
   const [charsToType, setCharsToType] = useState<Array<string>>([]);
   const [seconds, setSeconds] = useState<number>(15);
@@ -18,7 +15,37 @@ const PlayGame: React.FC<PlayGameProps> = ({ text }) => {
   const [done, setDone] = useState<boolean>(false);
   const [finalWpm, setFinalWpm] = useState<number>(0);
   const [finalAccuracy, setFinalAccuracy] = useState<number>(0);
+  const [reseted, setReseted] = useState<boolean>(false);
+  const [internalText, setInternalText] = useState<String>(generateRandomParagraph(15));
 
+  useEffect(() => {
+    if (reseted) {
+      setChrsTyped([]);
+      setSeconds(15);
+      setDone(false);
+      setFinalAccuracy(0);
+      setFinalWpm(0);
+      setTypingStarted(false);
+
+      setInternalText(generateRandomParagraph(15));
+    }
+  }, [reseted]);
+
+  let textByLine = useMemo(() => (internalText ?? '').split('\n'), [internalText]);
+
+  const [addTest, { isLoading }] = useAddTestMutation();
+  if(isLoading) {
+    console.log('loading test adding operation...');
+  }
+
+  const { data: response } = useGetSessionQuery();
+
+  //done debug log
+  useEffect(() => {
+    console.log("done state updated: ", done);
+  }, [done]);
+
+  //sets the text
   useEffect(() => {
     const chars = textByLine
       .map((line) => line.trim().split("").map((c) => c))
@@ -27,6 +54,11 @@ const PlayGame: React.FC<PlayGameProps> = ({ text }) => {
   }, [textByLine]);
 
   useKeyPress((key: any) => {
+    if (done) {
+      console.log('game over, no more input!');
+      return;
+    }
+
     if (!done && key) {
       if (!typingStarted) {
         setTypingStarted(true);
@@ -35,16 +67,18 @@ const PlayGame: React.FC<PlayGameProps> = ({ text }) => {
       if (key !== "Backspace") {
         setChrsTyped((prevChrsTyped) => [...prevChrsTyped, key]);
       } else {
-        setChrsTyped((prevChrsTyped) => prevChrsTyped.slice(0, -1) ); 
-      } 
-    } 
+        setChrsTyped((prevChrsTyped) => prevChrsTyped.slice(0, -1)); 
+      }
+    }
   });
 
+  //timer logic
   useEffect(() => {
     if (typingStarted) {
+      setReseted(false);
       const timer = setInterval(() => {
         setSeconds((prevSeconds) => {
-          if (prevSeconds <= 0) {
+          if (prevSeconds <= 1) {
             clearInterval(timer);
             setDone(true);
             return 0;
@@ -63,22 +97,42 @@ const PlayGame: React.FC<PlayGameProps> = ({ text }) => {
     }
   }, [done]);
 
-  const calculateFinalStats = () => {
-    const correct = chrsTyped.reduce((acc, chr, i) => {
+  const calculateFinalStats = async () => {
+    const minLength = Math.min(chrsTyped.length, charsToType.length);
+  
+    const correct = chrsTyped.slice(0, minLength).reduce((acc, chr, i) => {
       return chr === charsToType[i] ? acc + 1 : acc;
     }, 0);
-
-    const accuracy = (correct / chrsTyped.length) * 100;
+  
+    const accuracy = (correct / minLength) * 100;
     setFinalAccuracy(accuracy);
-
-    const wpm = (chrsTyped.length / 5) / (15 / 60);
+  
+    const timeTaken = 15 - seconds;
+    const wpm = timeTaken > 0 ? (correct / 5) / (timeTaken / 60) : 0;
     setFinalWpm(wpm);
-  };
+  
+    console.log({
+      correct,
+      accuracy,
+      wpm,
+      chrsTypedLength: chrsTyped.length,
+      charsToTypeLength: charsToType.length,
+      minLength,
+    });
 
-  const wpm = done ? finalWpm : (chrsTyped.length / 5) / (15 / 60);
+    const addOperation = await addTest({ userId: response?.userId, wpm, accuracy }).unwrap();
+    console.log(addOperation?.msg);
+  };
+  
   const accuracy = done
     ? finalAccuracy
-    : (chrsTyped.reduce((acc, chr, i) => (chr === charsToType[i] ? acc + 1 : acc), 0) / chrsTyped.length) * 100;
+    : (chrsTyped.reduce((acc, chr, i) => (chr === charsToType[i] ? acc + 1 : acc), 0) / charsToType.length) * 100;
+  
+  const wpm = done
+    ? finalWpm
+    : typingStarted && seconds > 0
+    ? (chrsTyped.reduce((acc, chr, i) => (chr === charsToType[i] ? acc + 1 : acc), 0) / 5) / ((15 - seconds) / 60)
+    : 0;
 
   const accuracyText = `${done ? finalAccuracy.toFixed(0) : accuracy.toFixed(0)}%`;
 
@@ -94,6 +148,7 @@ const PlayGame: React.FC<PlayGameProps> = ({ text }) => {
               key={idx}
               id={idx}
               chrsTyped={chrsTyped}
+              done={done}
             />
           ))}
         </Box>
@@ -102,6 +157,7 @@ const PlayGame: React.FC<PlayGameProps> = ({ text }) => {
         <div className="endgame--stats">
           <p className="acc--text">Accuracy: {accuracyText}</p>
           <p>{wpm.toFixed(0)} Words Per Minute</p>
+          <button onClick={() => setReseted(true)}>Start New</button>
         </div>
       )}
     </div>
